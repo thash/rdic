@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+require "open-uri"
+require "rexml/document"
+
+query = ARGV[0]
+
+return if query.nil?
+def parse uri
+  list = []
+  open(uri) {|f| f.each_line {|line| list << line} }
+  if list.select{|r| r =~ /ItemCount/}.first.strip.gsub(/<ItemCount>|<\/ItemCount>/,"") == "0"
+    puts "no item" and return nil
+  else
+    #  p list.select{|r| r =~ /ItemID/}
+    return list.select{|r| r =~ /ItemID/}.first.strip.gsub(/<ItemID>|<\/ItemID>/,"")
+  end
+end
+
+def get_word uri
+  list = []
+  open(uri) {|f| f.each_line {|line| list << line} }
+  return list.select{|r| r =~ /<div>.*<\/div>/}.first.strip.gsub(/<div>|<\/div>/, "")
+end
+
+def japanese? word
+  !(word =~ /[0-9A-Za-z_]/)
+end
+
+if japanese?(query)
+  query = URI.encode(query)
+  dic =  "EdictJE"
+else
+  dic =   "EJdict"
+end
+
+base_url = "http://public.dejizo.jp/NetDicV09.asmx/SearchDicItemLite?"
+uri = "#{base_url}Dic=#{dic}&Word=#{query}&Scope=HEADWORD&Match=STARTWITH&Merge=AND&Prof=XHTML&PageSize=20&PageIndex=0"
+
+itemid = parse(uri)
+
+exit if itemid == nil
+
+uri = "http://public.dejizo.jp/NetDicV09.asmx/GetDicItemLite?Dic=#{dic}&Item=#{itemid}&Loc=&Prof=XHTML"
+
+word = get_word(uri)
+
+p word
