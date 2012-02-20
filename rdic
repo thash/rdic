@@ -45,4 +45,4 @@ uri = "http://public.dejizo.jp/NetDicV09.asmx/GetDicItemLite?Dic=#{dic}&Item=#{i
 
 word = get_word(uri)
 
-p word
+puts word
